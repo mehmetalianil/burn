@@ -3,6 +3,8 @@ use crate::storage::ComputeStorage;
 /// The managed tensor buffer handle that points to some memory segment.
 /// It should not contain actual data.
 pub trait MemoryHandle<Binding>: Clone + Send + Sync + core::fmt::Debug {
+    /// Create a new memory handle that isn't mapped to the hardware.
+    fn new_unmapped(size: usize) -> Self;
     /// Checks if the underlying memory can be safely mutated.
     fn can_mut(&self) -> bool;
     /// Get the binding associated to the current handle.
@@ -10,7 +12,10 @@ pub trait MemoryHandle<Binding>: Clone + Send + Sync + core::fmt::Debug {
 }
 
 /// Binding to a [memory handle](MemoryHandle).
-pub trait MemoryBinding: Clone + Send + Sync + core::fmt::Debug {}
+pub trait MemoryBinding: Clone + Send + Sync + core::fmt::Debug {
+    /// Returns if the binding is mapped to a storage location.
+    fn is_mapped(&self) -> bool;
+}
 
 /// The MemoryManagement trait encapsulates strategies for (de)allocating memory.
 /// It is bound to the ComputeStorage trait, which does the actual (de)allocations.
@@ -28,6 +33,8 @@ pub trait MemoryManagement<Storage: ComputeStorage>: Send + core::fmt::Debug {
 
     /// Finds a spot in memory for a resource with the given size in bytes, and returns a handle to it
     fn reserve<Sync: FnOnce()>(&mut self, size: usize, sync: Sync) -> Self::Handle;
+    /// Map a binding
+    fn map<Sync: FnOnce()>(&mut self, binding: Self::Binding, sync: Sync) -> Self::Handle;
 
     /// Bypass the memory allocation algorithm to allocate data directly.
     ///
@@ -54,4 +61,9 @@ pub trait MemoryManagement<Storage: ComputeStorage>: Send + core::fmt::Debug {
     /// This is useful if you need to time the deallocations based on async computation, or to
     /// change the mode of storage for different reasons.
     fn storage(&mut self) -> &mut Storage;
+
+    /// Create an unmapped storage handle.
+    fn unmapped(size: usize) -> Self::Handle {
+        Self::Handle::new_unmapped(size)
+    }
 }

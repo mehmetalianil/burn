@@ -67,9 +67,16 @@ impl<C: MemoryChunk<S>, S: MemorySlice> RingBuffer<C, S> {
         size: usize,
         chunks: &mut HashMap<ChunkId, C>,
         slices: &mut HashMap<SliceId, S>,
+        exclusion_list: &[ChunkId],
     ) -> Option<SliceId> {
         let max_second = self.cursor_chunk;
-        let result = self.find_free_slice_in_all_chunks(size, chunks, slices, self.queue.len());
+        let result = self.find_free_slice_in_all_chunks(
+            size,
+            chunks,
+            slices,
+            exclusion_list,
+            self.queue.len(),
+        );
 
         if result.is_some() {
             return result;
@@ -77,7 +84,7 @@ impl<C: MemoryChunk<S>, S: MemorySlice> RingBuffer<C, S> {
 
         self.cursor_chunk = 0;
         self.cursor_slice = 0;
-        self.find_free_slice_in_all_chunks(size, chunks, slices, max_second)
+        self.find_free_slice_in_all_chunks(size, chunks, slices, exclusion_list, max_second)
     }
 
     fn find_free_slice_in_chunk(
@@ -129,6 +136,7 @@ impl<C: MemoryChunk<S>, S: MemorySlice> RingBuffer<C, S> {
         size: usize,
         chunks: &mut HashMap<ChunkId, C>,
         slices: &mut HashMap<SliceId, S>,
+        exclusion_list: &[ChunkId],
         max_cursor_position: usize,
     ) -> Option<SliceId> {
         let start = self.cursor_chunk;
@@ -141,6 +149,12 @@ impl<C: MemoryChunk<S>, S: MemorySlice> RingBuffer<C, S> {
             }
 
             if let Some(id) = self.queue.get(chunk_index) {
+                // NEW CODE START
+                if exclusion_list.contains(id) {
+                    continue;
+                }
+
+                // NEW CODE END
                 let chunk = chunks.get_mut(id).unwrap();
                 let result = self.find_free_slice_in_chunk(size, chunk, slices, slice_index);
 
@@ -178,7 +192,9 @@ mod tests {
 
         ring.push_chunk(ChunkId { value: 0 });
 
-        let slice = ring.find_free_slice(50, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(50, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 0 });
         assert_eq!(slices.get(&slice).unwrap().size, 50);
@@ -199,7 +215,9 @@ mod tests {
 
         ring.push_chunk(ChunkId { value: 0 });
 
-        let slice = ring.find_free_slice(150, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(150, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 0 });
         assert_eq!(slices.get(&slice).unwrap().size, 150);
@@ -233,11 +251,15 @@ mod tests {
         slices.get_mut(&SliceId { value: 1 }).unwrap().is_free = false;
         slices.get_mut(&SliceId { value: 3 }).unwrap().is_free = false;
 
-        let slice = ring.find_free_slice(200, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(200, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 2 });
 
-        let slice = ring.find_free_slice(100, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(100, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 0 });
     }
@@ -258,7 +280,9 @@ mod tests {
         slices.get_mut(&SliceId { value: 0 }).unwrap().is_free = false;
         slices.get_mut(&SliceId { value: 1 }).unwrap().is_free = true;
 
-        let slice = ring.find_free_slice(200, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(200, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 1 });
         assert_eq!(slices.get(&slice).unwrap().size, 200);
@@ -288,7 +312,9 @@ mod tests {
         slices.get_mut(&SliceId { value: 1 }).unwrap().is_free = true;
         slices.get_mut(&SliceId { value: 2 }).unwrap().is_free = true;
 
-        let slice = ring.find_free_slice(250, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(250, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slice, SliceId { value: 0 });
         assert_eq!(slices.get(&slice).unwrap().size, 250);
@@ -324,7 +350,9 @@ mod tests {
         slices.get_mut(&SliceId { value: 2 }).unwrap().is_free = true;
         slices.get_mut(&SliceId { value: 3 }).unwrap().is_free = true;
 
-        let slice = ring.find_free_slice(150, &mut chunks, &mut slices).unwrap();
+        let slice = ring
+            .find_free_slice(150, &mut chunks, &mut slices, &[])
+            .unwrap();
 
         assert_eq!(slices.get(&slice).unwrap().size, 150);
         assert_eq!(slices.len(), 2);

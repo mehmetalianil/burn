@@ -152,9 +152,17 @@ impl<Storage> core::fmt::Debug for SimpleMemoryManagement<Storage> {
     }
 }
 
-impl MemoryBinding for SimpleBinding {}
+impl MemoryBinding for SimpleBinding {
+    fn is_mapped(&self) -> bool {
+        true
+    }
+}
 
 impl MemoryHandle<SimpleBinding> for SimpleHandle {
+    fn new_unmapped(size: usize) -> Self {
+        todo!()
+    }
+
     fn can_mut(&self) -> bool {
         match &self {
             SimpleHandle::Chunk(id) => id.can_mut(),
@@ -229,6 +237,10 @@ impl<Storage: ComputeStorage> MemoryManagement<Storage> for SimpleMemoryManageme
 
     fn storage(&mut self) -> &mut Storage {
         &mut self.storage
+    }
+
+    fn map<Sync: FnOnce()>(&mut self, binding: Self::Binding, sync: Sync) -> Self::Handle {
+        todo!()
     }
 }
 

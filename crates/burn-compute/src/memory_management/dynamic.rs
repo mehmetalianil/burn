@@ -136,7 +136,7 @@ impl<Storage: ComputeStorage> MemoryManagement<Storage> for DynamicMemoryManagem
             }
         }
 
-        panic!("No handle found in memory pools");
+        panic!("No storage was found {:?}", binding)
     }
 
     fn reserve<Sync: FnOnce()>(&mut self, size: usize, sync: Sync) -> Self::Handle {
@@ -177,5 +177,14 @@ impl<Storage: ComputeStorage> MemoryManagement<Storage> for DynamicMemoryManagem
 
     fn storage(&mut self) -> &mut Storage {
         &mut self.storage
+    }
+
+    fn map<Sync: FnOnce()>(&mut self, binding: Self::Binding, sync: Sync) -> Self::Handle {
+        match binding {
+            MemoryPoolBinding::Mapped(_) => panic!("Already Mapped"),
+            MemoryPoolBinding::UnMapped { binding, size } => {
+                self.reserve(size, sync)
+            },
+        }
     }
 }

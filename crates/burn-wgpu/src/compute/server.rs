@@ -3,7 +3,7 @@ use std::num::NonZeroU64;
 use super::WgpuStorage;
 use alloc::{borrow::Cow, sync::Arc};
 use burn_compute::{
-    memory_management::MemoryManagement,
+    memory_management::{MemoryBinding, MemoryHandle, MemoryManagement},
     server::{self, ComputeServer},
 };
 use burn_cube::{prelude::*, FeatureSet};
@@ -166,6 +166,7 @@ where
     type FeatureSet = FeatureSet;
 
     fn read(&mut self, binding: server::Binding<Self>) -> Reader {
+        println!("Read {binding:?}");
         let device = self.device.clone();
         let buffer = self.create_read_buffer(binding);
 
@@ -282,13 +283,39 @@ where
         count: Self::DispatchOptions,
         bindings: Vec<server::Binding<Self>>,
     ) {
+        let mut memory_handles = Vec::new();
+        let mut exclusion_list = Vec::new();
+
+        for binding in bindings.iter() {
+            if binding.memory.is_mapped() {
+                exclusion_list.push(binding.clone());
+            }
+        }
+
+        for binding in bindings.into_iter() {
+            if binding.memory.is_mapped() {
+                println!("Binding {:?}", binding.memory);
+                memory_handles.push(self.memory_management.get(binding.memory));
+            } else {
+                // println!("Unmap Binding {:?}", binding.memory);
+                let handle = self.memory_management.map(binding.memory, || {
+                    flush_tasks(
+                        &mut self.encoder,
+                        &self.queue,
+                        &self.device,
+                        &mut self.tasks_count,
+                        &mut self.staging_belt,
+                    );
+                    self.device.poll(wgpu::Maintain::Wait);
+                });
+                let binding = handle.binding();
+                // println!("Unmap After Binding {:?}", binding);
+                memory_handles.push(self.memory_management.get(binding));
+            }
+        }
+
         let pipeline = self.pipeline(kernel);
         let group_layout = pipeline.get_bind_group_layout(0);
-
-        let memory_handles = bindings
-            .into_iter()
-            .map(|binding| self.memory_management.get(binding.memory))
-            .collect::<Vec<_>>();
 
         let entries = memory_handles
             .iter()

@@ -1,5 +1,6 @@
 use crate::{
     channel::ComputeChannel,
+    memory_management::{MemoryHandle, MemoryManagement},
     server::{Binding, ComputeServer, Handle},
     storage::ComputeStorage,
     tune::{AutotuneOperationSet, Tuner},
@@ -78,7 +79,7 @@ where
 
     /// Reserves `size` bytes in the storage, and returns a handle over them.
     pub fn empty(&self, size: usize) -> Handle<Server> {
-        self.channel.empty(size)
+        Handle::new(Server::MemoryManagement::unmapped(size))
     }
 
     /// Executes the `kernel` over the given `bindings`.

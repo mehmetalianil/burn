@@ -190,8 +190,13 @@ impl MemoryPool {
         storage: &mut Storage,
         binding: &MemoryPoolBinding,
     ) -> Option<Storage::Resource> {
+        let slice = match binding {
+            MemoryPoolBinding::Mapped(slice) => slice,
+            MemoryPoolBinding::UnMapped { handle: _, size: _ } => return None,
+        };
+
         self.slices
-            .get(binding.slice.id())
+            .get(slice.id())
             .map(|s| &s.storage)
             .map(|h| storage.get(h))
     }
@@ -206,12 +211,10 @@ impl MemoryPool {
         size: usize,
         sync: Sync,
     ) -> MemoryPoolHandle {
-        let slice = self.get_free_slice(size);
+        let slice = self.get_free_slice(size, &[]);
 
         match slice {
-            Some(slice) => MemoryPoolHandle {
-                slice: slice.clone(),
-            },
+            Some(slice) => MemoryPoolHandle::Mapped(slice.clone()),
             None => self.alloc(storage, size, sync),
         }
     }
@@ -245,9 +248,7 @@ impl MemoryPool {
         let handle_slice = slice.handle.clone();
         self.update_chunk_metadata(chunk_id, slice, extra_slice);
 
-        MemoryPoolHandle {
-            slice: handle_slice,
-        }
+        MemoryPoolHandle::Mapped(handle_slice)
     }
 
     fn allocate_slices(
@@ -318,7 +319,7 @@ impl MemoryPool {
 
     /// Finds a free slice that can contain the given size
     /// Returns the chunk's id and size.
-    fn get_free_slice(&mut self, size: usize) -> Option<SliceHandle> {
+    fn get_free_slice(&mut self, size: usize, exclusion_list: &[ChunkId]) -> Option<SliceHandle> {
         if size < MIN_SIZE_NEEDED_TO_OFFSET {
             return None;
         }
@@ -326,9 +327,12 @@ impl MemoryPool {
         let padding = calculate_padding(size, self.buffer_alignment);
         let effective_size = size + padding;
 
-        let slice_id =
-            self.ring
-                .find_free_slice(effective_size, &mut self.chunks, &mut self.slices)?;
+        let slice_id = self.ring.find_free_slice(
+            effective_size,
+            &mut self.chunks,
+            &mut self.slices,
+            exclusion_list,
+        )?;
 
         let slice = self.slices.get_mut(&slice_id).unwrap();
         let old_slice_size = slice.effective_size();

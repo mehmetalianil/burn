@@ -61,8 +61,13 @@ impl SmallMemoryPool {
         storage: &mut Storage,
         binding: &MemoryPoolBinding,
     ) -> Option<Storage::Resource> {
+        let slice = match binding {
+            MemoryPoolBinding::Mapped(slice) => slice,
+            MemoryPoolBinding::UnMapped { handle, size: _ } => handle,
+        };
+
         self.slices
-            .get(binding.slice.id())
+            .get(slice.id())
             .map(|s| &s.storage)
             .map(|h| storage.get(h))
     }
@@ -81,9 +86,7 @@ impl SmallMemoryPool {
         let slice = self.get_free_slice(size);
 
         match slice {
-            Some(slice) => MemoryPoolHandle {
-                slice: slice.clone(),
-            },
+            Some(slice) => MemoryPoolHandle::Mapped(slice.clone()),
             None => self.alloc(storage, size, sync),
         }
     }
@@ -111,9 +114,7 @@ impl SmallMemoryPool {
         let handle_slice = slice.handle.clone();
         self.update_chunk_metadata(chunk_id, slice);
 
-        MemoryPoolHandle {
-            slice: handle_slice,
-        }
+        MemoryPoolHandle::Mapped(handle_slice)
     }
 
     fn allocate_slice(&self, handle_chunk: ChunkHandle, slice_size: usize) -> SmallSlice {
