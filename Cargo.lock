@@ -3262,7 +3262,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -5788,9 +5788,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.127"
+version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8043c06d9f82bd7271361ed64f415fe5e12a77fdb52e573e7f06a516dea329ad"
+checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
  "itoa",
  "memchr",
@@ -6665,8 +6665,9 @@ checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
 
 [[package]]
 name = "tracel-xtask"
-version = "1.0.0"
-source = "git+https://github.com/tracel-ai/xtask?rev=921408bc16e74d3ef8ae59356d928fb6706fb8f4#921408bc16e74d3ef8ae59356d928fb6706fb8f4"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63f307c8a22d3c67bb2a0678290243e4917d235c507f0c8b35e8612919978a08"
 dependencies = [
  "anyhow",
  "clap 4.5.16",
@@ -6683,8 +6684,9 @@ dependencies = [
 
 [[package]]
 name = "tracel-xtask-macros"
-version = "1.0.0"
-source = "git+https://github.com/tracel-ai/xtask?rev=921408bc16e74d3ef8ae59356d928fb6706fb8f4#921408bc16e74d3ef8ae59356d928fb6706fb8f4"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9b7ee23c050536c8c932ca7daaebbf45ff6c1d57f1bd65fc084833ac6a8d419"
 dependencies = [
  "proc-macro2",
  "quote",
