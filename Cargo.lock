@@ -293,7 +293,7 @@ dependencies = [
  "burn",
  "burn-common",
  "burn-wgpu",
- "clap 4.5.16",
+ "clap 4.5.17",
  "colored",
  "cubecl",
  "derive-new",
@@ -1005,9 +1005,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.16"
+version = "4.5.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6719fffa43d0d87e5fd8caeab59be1554fb028cd30edc88fc4369b17971019"
+checksum = "3e5a21b8495e732f1b3c364c9949b201ca7bae518c502c80256c96ad79eaf6ac"
 dependencies = [
  "clap_builder",
  "clap_derive 4.5.13",
@@ -1015,9 +1015,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.15"
+version = "4.5.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "216aec2b177652e3846684cbfe25c9964d18ec45234f0f5da5157b207ed1aab6"
+checksum = "8cf2dd12af7a047ad9d6da2b6b249759a22a7abc0f474c1dae1777afa4b21a73"
 dependencies = [
  "anstream",
  "anstyle",
@@ -3262,7 +3262,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -6665,11 +6665,12 @@ checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
 
 [[package]]
 name = "tracel-xtask"
-version = "1.0.0"
-source = "git+https://github.com/tracel-ai/xtask?rev=921408bc16e74d3ef8ae59356d928fb6706fb8f4#921408bc16e74d3ef8ae59356d928fb6706fb8f4"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63f307c8a22d3c67bb2a0678290243e4917d235c507f0c8b35e8612919978a08"
 dependencies = [
  "anyhow",
- "clap 4.5.16",
+ "clap 4.5.17",
  "derive_more",
  "env_logger",
  "log",
@@ -6683,8 +6684,9 @@ dependencies = [
 
 [[package]]
 name = "tracel-xtask-macros"
-version = "1.0.0"
-source = "git+https://github.com/tracel-ai/xtask?rev=921408bc16e74d3ef8ae59356d928fb6706fb8f4#921408bc16e74d3ef8ae59356d928fb6706fb8f4"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9b7ee23c050536c8c932ca7daaebbf45ff6c1d57f1bd65fc084833ac6a8d419"
 dependencies = [
  "proc-macro2",
  "quote",
